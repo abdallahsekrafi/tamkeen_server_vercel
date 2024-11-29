@@ -22,7 +22,15 @@ export const createAiChats = async (req, res, next) => {
   try {
     const { userId } = req.body.user;
     const { message } = req.body;
-
+    const { userProfile } = req.body;
+    const username = `${userProfile.firstName} ${userProfile.lastName}`;
+     const disabilities = [];
+  if (userProfile.isMental) disabilities.push("Mental");
+  if (userProfile.isMotor) disabilities.push("Motor");
+  if (userProfile.isHearing) disabilities.push("Hearing");
+  if (userProfile.isVisual) disabilities.push("Visual");
+  if (userProfile.isPsychological) disabilities.push("Psychological");
+    let disabilitiesList = disabilities.join(", ");
     const reqAiChat = {
       userId: userId,
       role: "user",
@@ -38,7 +46,7 @@ export const createAiChats = async (req, res, next) => {
       {
         role: "system",
         content:
-          "You are an assistant called Tamkeen, specializing in information and advice related to disability. As the personal assistant for people with disabilities, your role is to provide accurate and actionable guidance to help train, qualify, and employ them, improving their daily lives and fostering independence. If the question is outside your specialty, kindly remind the user of your area of expertise and redirect them appropriately.",
+          `You are an assistant called Tamkeen, specializing in information and advice related to disability. As the personal assistant for ${username}, who is interested in or affected by the following disabilities: ${disabilitiesList}, your role is to provide accurate and actionable guidance to help train, qualify, and employ them, improving their daily lives and fostering independence. If the question is outside your specialty, kindly remind the user of your area of expertise and redirect them appropriately.`,
       },
     ];
     // push the new message from user
@@ -50,14 +58,8 @@ export const createAiChats = async (req, res, next) => {
       messages: chats,
       model: process.env.OPEN_AI_MODEL,
     });
-    if (completion.choices[0].message.content === "tmkhc") {
-      resAiChat.role = "assistant";
-      resAiChat.content =
-        "Your question seems out of Tamkeen context, I remind you that I am a special assistant for people with disabilities";
-    } else {
-      resAiChat.role = "assistant";
+    resAiChat.role = "assistant";
       resAiChat.content = completion.choices[0].message.content;
-    }
 
     // save both req and res chat in db
     await AiChats.insertMany([reqAiChat, resAiChat]);
