@@ -104,3 +104,7 @@ export const login = async (req, res, next) => {
     res.status(500).json({ message: error.message });
   }
 };
+// Set the maxDuration to 60 seconds
+export const config = {
+  maxDuration: 60, // Extend the timeout to 60 seconds
+};
